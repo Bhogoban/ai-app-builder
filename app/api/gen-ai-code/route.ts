@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { aj } from "@/lib/arcjet";
+import { Prisma } from "@prisma/client";
 
 function trimHistory(messages: Message[]): Message[] {
   if (messages.length <= 10) return messages;
@@ -272,7 +273,7 @@ export async function POST(request: NextRequest) {
           { role: "assistant", content: assistantMessage },
         ];
         
-        const workspace = await db.$transaction(async(tx)=>{
+        const workspace = await db.$transaction(async(tx: Prisma.TransactionClient)=>{
 
             const ws= workspaceId
             ? await tx.workspace.update({
