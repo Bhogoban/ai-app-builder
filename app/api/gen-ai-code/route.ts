@@ -111,12 +111,15 @@ async function validateDependencies(
 
 
 export async function POST(request: NextRequest) {
+  console.log("1. POST reached");
      const { userId: clerkId } = await auth();
+     console.log("2. Auth:", clerkId);
   if (!clerkId) {
     return Response.json({ message: "Unauthorized" }, { status: 401 });
   }
 
  const body=await request.json();
+ console.log("3. Parsed body");
   const { workspaceId, userId, messages, fileData } = body as {
     workspaceId: string | null;
     userId: string;
@@ -142,6 +145,7 @@ export async function POST(request: NextRequest) {
      userId: clerkId,
      detectPromptInjectionMessage: lastUserMessage,
    });
+   console.log("4. Arcjet passed");
    if (decision.isDenied()) {
      return Response.json(
        { message: decision.reason?.type ?? "Request blocked" },
@@ -153,6 +157,7 @@ export async function POST(request: NextRequest) {
     where: { clerkId },
     select: { id: true, credits: true },
   });
+  console.log("5. User:", user);
   
 
     if (!user)
@@ -170,6 +175,7 @@ export async function POST(request: NextRequest) {
         try{
            const contents= buildContents(messages, fileData);
 
+           console.log("6. Calling Gemini...");
            const geminiStream = await ai.models.generateContentStream({
              model: "gemini-3.5-flash",
           contents,
@@ -182,6 +188,7 @@ export async function POST(request: NextRequest) {
             },
         },
         });
+        console.log("7. Gemini stream created");
 
         let accumulated = ""; // final JSON output
         let lastEmitTime = 0; // throttle thought emissions
